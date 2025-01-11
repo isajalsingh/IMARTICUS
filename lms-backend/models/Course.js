@@ -8,10 +8,6 @@ const courseSchema = new mongoose.Schema({
   batch: {
     type: String,
     required: true
-  },
-  courseId: {
-    type: mongoose.Schema.Types.ObjectId,
-    required: true
   }
 });
 

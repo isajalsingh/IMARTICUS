@@ -7,47 +7,66 @@ const Chapter = require('../models/Chapter'); // Assuming you have a Chapter mod
 const Lecture = require('../models/Lecture'); // Assuming you have a Lecture model
 const Quiz = require('../models/Quiz'); // Assuming you have a Quiz model
 
-// Fetch all courses
-router.get('/', async (req, res) => {
-  try {
-    const courses = await Course.find();
-    res.json(courses);
-  } catch (error) {
-    res.status(500).json({ message: 'Error fetching courses', error });
-  }
-});
 
-// Fetch a specific course by courseId
-router.get('/:courseId', async (req, res) => {
+
+
+router.get('/:courseid', async (req, res) => {
+  console.log('hello world');
+  console.log(req.params);
+  console.log(req.params.courseid);
+  let abc = req.params.courseid;
   try {
-    const courseId = mongoose.Types.ObjectId(req.params.courseId);
-    const course = await Course.findOne({ _id: courseId });
+    const courseId = new mongoose.Types.ObjectId(req.params.courseid);
+    console.log(courseId);
+    const course = await Course.find();
+    console.log(course);
     if (!course) {
       return res.status(404).json({ message: 'Course not found' });
     }
-    const chapter = await chapter.find({ courseid: courseId });
-    let chapter_id_arr = chapter.map((chap) => chap._id)
-    let assignment = await Assignment.find({ chapter_id: { $in: chapter_id_arr } })
-    let assignment = await Assignment.find({ chapter_id: { $in: chapter_id_arr } })
-    let assignment = await Assignment.find({ chapter_id: { $in: chapter_id_arr } })
-    let assignment_map = {}
-    for (let i = 0; i < assignment.length; i++) {
-      if (!assignment_map[assignment[i].chapter_id]) {
-        assignment_map[assignment[i].chapter_id] = []
+
+    const chapters = await Chapter.find({ courseId: courseId });
+    console.log(chapters);
+    const chapterIds = chapters.map(chap => chap._id);
+    console.log(chapterIds);
+
+    const assignments = await Assignment.find({ chapterId: { $in: chapterIds } });
+    console.log(assignments);
+    const lectures = await Lecture.find({ chapterId: { $in: chapterIds } });
+    console.log(lectures);
+    const quizzes = await Quiz.find({ chapterId: { $in: chapterIds } });
+    console.log(quizzes);
+
+    const contentMap = {};
+
+    assignments.forEach(assignment => {
+      if (!contentMap[assignment.chapterId]) {
+        contentMap[assignment.chapterId] = { assignments: [], lectures: [], quizzes: [] };
       }
-      assignment_map[assignment[i].chapter_id].push(assignment)
-    }
+      contentMap[assignment.chapterId].assignments.push(assignment);
+    });
 
-    for (let i = 0; i < chapter.length; i++) {
-      chapter[i].content = []
-      chapter[i].content.push(...assignment_map[chapter._id])
-    }
+    lectures.forEach(lecture => {
+      if (!contentMap[lecture.chapterId]) {
+        contentMap[lecture.chapterId] = { assignments: [], lectures: [], quizzes: [] };
+      }
+      contentMap[lecture.chapterId].lectures.push(lecture);
+    });
 
+    quizzes.forEach(quiz => {
+      if (!contentMap[quiz.chapterId]) {
+        contentMap[quiz.chapterId] = { assignments: [], lectures: [], quizzes: [] };
+      }
+      contentMap[quiz.chapterId].quizzes.push(quiz);
+    });
 
+    chapters.forEach(chapter => {
+      chapter.content = contentMap[chapter._id] || { assignments: [], lectures: [], quizzes: [] };
+    });
 
-    res.json(chapter);
+    res.json(chapters);
   } catch (error) {
-    res.status(500).json({ message: 'Error fetching course', error });
+    console.log(error);
+    res.status(500).json({ message: 'Error fetching course content', error });
   }
 });
 
