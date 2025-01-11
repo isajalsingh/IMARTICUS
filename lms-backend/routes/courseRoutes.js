@@ -21,11 +21,31 @@ router.get('/', async (req, res) => {
 router.get('/:courseId', async (req, res) => {
   try {
     const courseId = mongoose.Types.ObjectId(req.params.courseId);
-    const course = await Course.findOne({ 'courseId': courseId });
+    const course = await Course.findOne({ _id: courseId });
     if (!course) {
       return res.status(404).json({ message: 'Course not found' });
     }
-    res.json(course);
+    const chapter = await chapter.find({ courseid: courseId });
+    let chapter_id_arr = chapter.map((chap) => chap._id)
+    let assignment = await Assignment.find({ chapter_id: { $in: chapter_id_arr } })
+    let assignment = await Assignment.find({ chapter_id: { $in: chapter_id_arr } })
+    let assignment = await Assignment.find({ chapter_id: { $in: chapter_id_arr } })
+    let assignment_map = {}
+    for (let i = 0; i < assignment.length; i++) {
+      if (!assignment_map[assignment[i].chapter_id]) {
+        assignment_map[assignment[i].chapter_id] = []
+      }
+      assignment_map[assignment[i].chapter_id].push(assignment)
+    }
+
+    for (let i = 0; i < chapter.length; i++) {
+      chapter[i].content = []
+      chapter[i].content.push(...assignment_map[chapter._id])
+    }
+
+
+
+    res.json(chapter);
   } catch (error) {
     res.status(500).json({ message: 'Error fetching course', error });
   }
