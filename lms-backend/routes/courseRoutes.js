@@ -2,6 +2,10 @@ const express = require('express');
 const router = express.Router();
 const mongoose = require('mongoose');
 const Course = require('../models/Course'); // Assuming you have a Course model
+const Assignment = require('../models/Assignment'); // Assuming you have an Assignment model
+const Chapter = require('../models/Chapter'); // Assuming you have a Chapter model
+const Lecture = require('../models/Lecture'); // Assuming you have a Lecture model
+const Quiz = require('../models/Quiz'); // Assuming you have a Quiz model
 
 // Fetch all courses
 router.get('/', async (req, res) => {
